@@ -18,7 +18,7 @@ with open("asl_model.pkl", "rb") as f:
 clf = bundle["model"]
 le  = bundle["label_encoder"]
 
-MIN_CONFIDENCE = 0.65
+MIN_CONFIDENCE = 0.55
 
 def normalize(coords):
     lm = np.array(coords).reshape(-1, 3)
