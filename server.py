@@ -34,14 +34,23 @@ def run_prediction(landmarks):
         return {"error": f"Expected 63 values, got {len(landmarks)}"}
 
     features = normalize(landmarks).reshape(1, -1)
-    pred = clf.predict(features)[0]
-    prob = float(clf.predict_proba(features).max())
-    letter = le.inverse_transform([pred])[0].upper()
+    proba = clf.predict_proba(features)[0]
+
+    # Top-3 candidates — always included so frontend can vote across frames
+    top3_indices = proba.argsort()[::-1][:3]
+    top3 = [
+        {"letter": le.inverse_transform([i])[0].upper(), "confidence": float(proba[i])}
+        for i in top3_indices
+    ]
+
+    pred = top3_indices[0]
+    prob = float(proba[pred])
+    letter = top3[0]["letter"]
 
     if prob < MIN_CONFIDENCE:
-        return {"prediction": None, "confidence": prob, "error": "Low confidence"}
+        return {"prediction": None, "confidence": prob, "top3": top3, "error": "Low confidence"}
 
-    return {"prediction": letter, "confidence": prob}
+    return {"prediction": letter, "confidence": prob, "top3": top3}
 
 
 # ── Existing HTTP endpoint (unchanged behavior) ─────────────────────────────
